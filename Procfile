@@ -1,0 +1,1 @@
+web: python shopee_discount_bot.py
