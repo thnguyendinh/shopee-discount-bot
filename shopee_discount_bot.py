@@ -2,6 +2,8 @@ import logging
 import pymongo
 import requests
 import time
+import os
+from dotenv import load_dotenv
 from datetime import datetime
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes, JobQueue
@@ -10,13 +12,21 @@ from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQu
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Bot token and webhook URL
-TOKEN = '8462830033:AAEsXrjKN1CBVIN_wtPezwlhcun6YfQz82U'
-WEBHOOK_URL = 'https://your-bot.onrender.com/' + TOKEN
-MONGO_URI = 'mongodb+srv://your_username:your_password@cluster.mongodb.net/shopee_bot?retryWrites=true&w=majority'
+# Load environment variables for local testing
+load_dotenv()
+TOKEN = os.getenv('TOKEN')
+WEBHOOK_URL = os.getenv('WEBHOOK_URL')
+MONGO_URI = os.getenv('MONGO_URI')
 
 # MongoDB setup
-client = pymongo.MongoClient(MONGO_URI)
+try:
+    client = pymongo.MongoClient(MONGO_URI)
+    client.server_info()  # Test connection
+    logger.info("MongoDB connection successful")
+except Exception as e:
+    logger.error(f"MongoDB connection failed: {e}")
+    raise
+
 db = client['shopee_bot']
 tracked_products = db['tracked_products']
 jobs = db['jobs']
@@ -231,6 +241,9 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.message.reply_text(f"Đã xóa '{keyword}' khỏi danh sách theo dõi.")
 
 def main():
+    if not all([TOKEN, MONGO_URI]):
+        raise ValueError("Missing TOKEN or MONGO_URI in environment variables")
+    
     application = Application.builder().token(TOKEN).build()
     
     application.add_handler(CommandHandler("start", start))
@@ -241,12 +254,16 @@ def main():
     
     load_jobs(application)
     
-    application.run_webhook(
-        listen="0.0.0.0",
-        port=8443,
-        url_path=TOKEN,
-        webhook_url=WEBHOOK_URL
-    )
+    # Use polling for local testing, webhook for server
+    if os.getenv('ENV') == 'local':
+        application.run_polling()
+    else:
+        application.run_webhook(
+            listen="0.0.0.0",
+            port=8443,
+            url_path=TOKEN,
+            webhook_url=WEBHOOK_URL
+        )
 
 if __name__ == '__main__':
     main()
