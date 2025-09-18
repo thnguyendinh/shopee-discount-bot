@@ -20,7 +20,7 @@ MONGO_URI = os.getenv('MONGO_URI')
 
 # MongoDB setup
 try:
-    client = pymongo.MongoClient(MONGO_URI)
+    client = pymongo.MongoClient(MONGO_URI, serverSelectionTimeoutMS=30000, connectTimeoutMS=30000, socketTimeoutMS=30000)
     client.server_info()  # Test connection
     logger.info("MongoDB connection successful")
 except Exception as e:
