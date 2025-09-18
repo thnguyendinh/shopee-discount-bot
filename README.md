@@ -155,7 +155,7 @@ Redeploy manually: Manual Deploy > Deploy latest commit.
 
 Notes
 
-Token Security: The bot token was exposed in commit 810b853. Generate a new token via @BotFather and update Render.
+Token Security: Generate a new token via @BotFather and update Render.
 Render Free Plan: Bot sleeps after 15 minutes of inactivity but wakes on webhook requests. Upgrade to Starter ($7/month) for 24/7 uptime.
 Shopee Scraping: Unofficial API may return 403 errors due to anti-bot measures. Future improvements may include proxy rotation or Shopee Open API (https://affiliate.shopee.vn/).
 
